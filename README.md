@@ -1,0 +1,2 @@
+# smartphonesensingresources
+Smartphone sensing resources
