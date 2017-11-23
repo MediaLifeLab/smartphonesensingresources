@@ -75,6 +75,38 @@ pwr.r.test(r = .21, sig.level = alpha_corr, power = 0.8, alternative = "two.side
 
 ## Multilevel Models
 
+<!-- http://rpsychologist.com/introducing-powerlmm -->
+
+
+```{r}
+install.packages("powerlmm")
+library(powerlmm)
+
+# tutorial from: http://rpsychologist.com/introducing-powerlmm 
+
+# dropout per treatment group
+d <- per_treatment(control = dropout_weibull(0.3, 2),
+              treatment = dropout_weibull(0.2, 2))
+
+# Setup design
+p <- study_parameters(n1 = 11, # time points
+                      n2 = 10, # subjects per cluster
+                      n3 = 5, # clusters per treatment arm
+                      icc_pre_subject = 0.5,
+                      icc_pre_cluster = 0,
+                      icc_slope = 0.05,
+                      var_ratio = 0.02,
+                      dropout = d,
+                      cohend = -0.8)
+
+# Power
+get_power(p)
+
+
+
+
+
+```
 
 
 
