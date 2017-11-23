@@ -1,0 +1,107 @@
+---
+title: "Personality Dynamics - Power Calculation"
+author: Clemens Stachl
+output: html_notebook
+---
+
+As mentioned in the book false positive results want to be avoided. 
+Therefore the number of planned hypothesis tests should be accounted for in the 
+power analysis. How many significance tests are will you perform?
+
+# 1. Adjust for multiple comparisons
+```{r}
+# number of hypothesis tests
+r <- 2
+
+# your significance level (family-wise) e.g. 0.05
+pi <- 0.05
+
+# calculate your corrected alpha
+alpha_corr <- pi/r
+
+# use alpha_corr in the power calculations e.g. if you want to calculate 2 correlations
+# simply put alpha_corr into your power calculation(s) instead of 0.05
+
+```
+
+
+
+# Power Berechnungen     
+
+```{r, echo=TRUE}
+library(pwr)
+
+# read also
+#https://cran.r-project.org/web/packages/pwr/vignettes/pwr-vignette.html
+
+```
+
+## T-tests
+
+- d: Cohens d effect size
+```{r}
+# Conventions:	s 0.2	m 0.5	l 0.8
+?pwr.t.test
+pwr.t.test(d=0.25, sig.level = alpha_corr, power = 0.8, alternative = "two.sided", type = "two.sample")
+
+```
+
+
+## ANOVA
+- k: number of groups
+- f: effect size
+```{r}
+# Conventions: s 0.1	m 0.25	l 0.4
+pwr.anova.test(k = 3, sig.level = alpha_corr, power = 0.8, f = 0.25)
+
+```
+
+
+## F-Test (for regression) - single and multiple regression
+Please note that this test is rather uninformative (correlations between predictors are not accounted for), 
+as a supplement use the correlations power analysis below (for two-variable linear associations).
+
+- n: sample size     
+- u: df numerator degrees of freedom (number of predictors without the intercept)      
+- v: df denominator degress of freedom (v = n - u - 1)  therefore n = v + u + 1  
+- f2: effect size R^2/(1-R^2)     
+
+```{r}
+# Conventions: s 0.02 m 0.15 l 0.35
+fpower <- pwr.f2.test(u = 5, f2 = 0.10/(1-0.10), sig.level = alpha_corr, power = 0.8)
+# min n needed
+ceiling(fpower$v) + fpower$u + 1
+
+```
+
+## Correlation
+```{r}
+
+#Conventions: s 0.1	m 0.3	l 0.5
+pwr.r.test(r = .21, sig.level = alpha_corr, power = 0.8, alternative = "two.sided")
+
+```
+
+## Bonus Safeguard Power - compare Perugini et al. (2014)
+r = found correlation in article
+n = sample size
+conf.level = width of CI 
+
+```{r}
+library(MBESS)
+# standardized mean difference (cohen's d)
+safeT <- ci.smd(smd = 0.2, n.1 = 70, n.2 = 70, conf.level = .60)
+safeT
+
+pwr.t.test(d=safeT$Lower.Conf.Limit.smd, sig.level = 0.05, power = 0.8, alternative = "two.sided", type = "two.sample")
+
+#Correlation
+safeCI <- ci.cc(r = .21, n = 137, conf.level = .60)
+safeCI
+
+# insert in Power Analysis
+pwr.r.test(r = safeCI$Lower.Limit, sig.level = 0.05, power = 0.8, alternative = "two.sided")
+
+```
+
+
